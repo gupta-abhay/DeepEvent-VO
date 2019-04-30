@@ -130,21 +130,25 @@ class KITTIDataset(Dataset):
 		# print(os.path.join(curImgDir, 'left_image', str(frame2).zfill(5) + '.png'))
 		img1 = smc.imread(os.path.join(curImgDir, 'left_image'+str(frame1).zfill(5) + '.png'), mode = 'I')
 		img2 = smc.imread(os.path.join(curImgDir, 'left_image'+str(frame2).zfill(5) + '.png'), mode = 'I')
+		event1 = np.load(os.path.join(curImgDir, 'left_event'+str(frame1).zfill(5) + '.npy'))
+		
+		print (event1.shape)
 		img1 = np.dstack([img1, img1, img1])
 		img2 = np.dstack([img2, img2, img2])
-		#print (img1.shape, img2.shape)
+		
 		img1 = img1[2:-2, 45:-45, :]
 		img2 = img2[2:-2, 45:-45, :]
-		# print (img1.shape, img2.shape)
+		
 		# Preprocess : returned after mean subtraction, resize and permute to N x C x W x H dims
 		img1 = self.preprocessImg(img1)
 		img2 = self.preprocessImg(img2)
 		#img1 = img1[2:-2, 45:-45, :]
 		#img2 = img2[2:-2, 45:-45,: ]
 		# print (img1.shape, img2.shape)
+		
 		# Concatenate the images along the channel dimension (and CUDAfy them)
-		pair = torch.empty([1, 2*self.channels, self.height, self.width])	
-		pair[0] = torch.cat((img1, img2), 0)
+		pair = torch.empty([1, 2*self.channels+4, self.height, self.width])	
+		pair[0] = torch.cat((img1, img2, event1), 0)
 		inputTensor = (pair.float()).cuda()
 		inputTensor = inputTensor * torch.from_numpy(np.asarray([1. / 255.], \
 			dtype = np.float32)).cuda()

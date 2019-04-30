@@ -9,7 +9,6 @@ class FloatRange(object):
 	def __eq__(self, other):
 		return self.start <= other <= self.end
 
-
 ################ Model Options ################################
 parser.add_argument('-loadModel', help = 'Whether or not to load pretrained weights. \
 	If yes: then specify the path to the saved weights', default = None)
@@ -24,8 +23,8 @@ parser.add_argument('-dropout', help = 'Drop ratio of dropout at penultimate lin
 	if dropout is to be used.', type = float, choices = [FloatRange(0.0, 1.0)])
 parser.add_argument('-numLSTMCells', help = 'Number of LSTM cells to stack together', type = int, \
 	default = 2)
-parser.add_argument('-imageWidth', help = 'Width of the input image', type = int, default = 1280)
-parser.add_argument('-imageHeight', help = 'Height of the input image', type = int, default = 384)
+parser.add_argument('-imageWidth', help = 'Width of the input image', type = int, default = 256)
+parser.add_argument('-imageHeight', help = 'Height of the input image', type = int, default = 256)
 parser.add_argument('-freezeCNN', help = 'Whether or not to freeze weights of the CNN', \
 	type = bool, default = True)
 
@@ -55,7 +54,7 @@ parser.add_argument('-lrScheduler', help = 'Learning rate scheduler', type = str
 	choices = ['cosine', 'plateau'])
 
 parser.add_argument('-nepochs', help = 'Number of epochs', type = int, default = 50)
-parser.add_argument('-trainBatch', help = 'train batch size', type = int, default = 40)
+parser.add_argument('-trainBatch', help = 'train batch size', type = int, default = 32)
 parser.add_argument('-validBatch', help = 'valid batch size', type = int, default = 1)
 
 parser.add_argument('-scf', help = 'Scaling factor for the rotation loss terms', \
@@ -69,7 +68,7 @@ parser.add_argument('-cachedir', \
 	help = '(Relative path to) directory in which to store logs, models, plots, etc.', \
 	type = str, default = 'cache')
 parser.add_argument('-datadir', help = 'Absolute path to the directory that holds the dataset', \
-	type = str, default = '/data/milatmp1/sharmasa/KITTI/dataset/')
+	type = str, default = './data/')
 
 ###### Experiments, Snapshots, and Visualization #############
 parser.add_argument('-expID', help = 'experiment ID', default = 'tmp')
@@ -97,6 +96,5 @@ parser.add_argument('-isDeterministic', help = 'Whether or not the code should \
 	use the provided random seed and run deterministically', type = bool, default = False)
 parser.add_argument('-numworkers', help = 'Number of threads available to the DataLoader', \
 	type = int, default = 1)
-
 
 arguments = parser.parse_args()

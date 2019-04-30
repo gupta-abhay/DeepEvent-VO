@@ -11,7 +11,6 @@ import numpy as np
 # # Not to be confused with log(R), which simply returns an element on the tangent space
 # def SO3_log(R):
 
-
 # Convert a rotation matrix to an axis-angle vector. Does vee(SO3_log(rot))
 def rotMat_to_axisAngle(rot):
 
@@ -21,7 +20,6 @@ def rotMat_to_axisAngle(rot):
 	omega_cross = (theta/(2*np.sin(theta)))*(rot - np.transpose(rot))
 
 	return [omega_cross[2,1], omega_cross[0,2], omega_cross[1,0]]
-
 
 # Map an axis-angle vector to a rotation matrix. Does SO3_exp(hat(omega))
 def axisAngle_to_rotMat(omega):
@@ -41,7 +39,6 @@ def axisAngle_to_rotMat(omega):
 	omega_cross_square = np.matmul(omega_cross, omega_cross)
 	R = np.eye(3,3) + A * omega_cross + B * omega_cross_square
 	return R
-
 
 # Convert a 3 x 3 rotation matrix to a quaternion
 # Abridged from the elegant pyquaternion library 
@@ -70,10 +67,8 @@ def rotMat_to_quat(R):
 			q = [t,  m[1, 2]-m[2, 1],  m[2, 0]-m[0, 2],  m[0, 1]-m[1, 0]]
 
 	q = np.array(q)
-	q *= 0.5 / np.sqrt(t);
-	
+	q *= 0.5 / np.sqrt(t)
 	return q
-
 
 def quat_to_rotMat(q):
 	''' Calculate rotation matrix corresponding to quaternion

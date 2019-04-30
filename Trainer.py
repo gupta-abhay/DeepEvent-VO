@@ -134,24 +134,14 @@ class Trainer():
 				self.loss_rot += curloss_rot
 				self.loss_trans += curloss_trans
 
-				if np.random.normal() < -0.9:
-					tqdm.write('rot: ' + str(rot_pred.data) + ' ' + str(rot_gt.data), file = sys.stdout)
-					tqdm.write('trans: ' + str(trans_pred.data) + ' ' + str(trans_gt.data), file = sys.stdout)
+				#if np.random.normal() < -0.9:
+				#	tqdm.write('rot: ' + str(rot_pred.data) + ' ' + str(rot_gt.data), file = sys.stdout)
+				#	tqdm.write('trans: ' + str(trans_pred.data) + ' ' + str(trans_gt.data), file = sys.stdout)
 
 				self.loss += sum([self.args.scf * self.loss_fn(rot_pred, rot_gt), \
 					self.loss_fn(trans_pred, trans_gt)])
 				# self.loss = self.loss_fn(rot_pred, rot_gt)
 
-				# # Compute gradients	# ???
-				# self.loss = sum([self.args.scf * self.loss_fn(rot_pred, rot_gt), \
-				# 	self.loss_fn(trans_pred, trans_gt)])
-				# self.loss.backward()
-				# # self.model.zero_grad()
-				# self.model.detach_LSTM_hidden()
-
-				# Store losses (for further analysis)
-				# curloss_rot = (self.args.scf * self.loss_fn(rot_pred, rot_gt)).detach().cpu().numpy()
-				# curloss_trans = (self.loss_fn(trans_pred, trans_gt)).detach().cpu().numpy()
 				curloss_rot = curloss_rot.detach().cpu().numpy()
 				curloss_trans = curloss_trans.detach().cpu().numpy()
 				rotLosses.append(curloss_rot)
@@ -173,25 +163,6 @@ class Trainer():
 			if elapsedBatches >= self.args.trainBatch or endOfSeq is True:
 
 				elapsedBatches = 0
-
-				# # L2-Regularization				
-				# if self.args.gamma > 0.0:
-				# 	# Regularization for network weights
-				# 	l2_reg = None
-				# 	for W in self.model.parameters():
-				# 		if l2_reg is None:
-				# 			l2_reg = W.norm(2)
-				# 		else:
-				# 			l2_reg = l2_reg + W.norm(2)
-				# 	self.loss = sum([self.weightRegularizer * l2_reg, self.loss])
-
-				# # L1-Regularization
-				# if self.args.gamma > 0.0:
-				# 	l1_crit = nn.L1Loss(size_average = False)
-				# 	reg_loss = None
-				# 	for param in self.model.parameters():
-				# 		reg_loss += l1_crit(param)
-				# 	self.loss = sum([self.gamma * reg_loss, self.loss])
 
 				# Regularize only LSTM(s)
 				if self.args.gamma > 0.0:
@@ -230,10 +201,6 @@ class Trainer():
 
 				# Monitor gradients
 				l = 0
-				# for p in self.model.parameters():
-				# 	if l in [j for j in range(18,26)] + [j for j in range(30,34)]:
-				# 		print(p.shape, 'GradNorm: ', p.grad.norm())
-				# 	l += 1
 				paramList = list(filter(lambda p : p.grad is not None, [param for param in self.model.parameters()]))
 				totalNorm = sum([(p.grad.data.norm(2.) ** 2.) for p in paramList]) ** (1. / 2)
 				tqdm.write('gradNorm: ' + str(totalNorm.item()))

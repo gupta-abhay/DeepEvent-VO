@@ -23,12 +23,11 @@ from tqdm import tqdm, trange
 
 # Other project files with definitions
 import args
-from KITTIDataset import KITTIDataset
+from KITTIDataset_Event import KITTIDataset
 from losses import MahalanobisLoss
-from Model import DeepVO
+from Model_Fusion import DeepVO
 from plotTrajectories import plotSequenceRelative, plotSequenceAbsolute
 from Trainer import Trainer
-
 
 # Parse commandline arguements
 cmd = args.arguments
@@ -129,8 +128,6 @@ if cmd.freezeCNN is True:
 			if n <= 17:
 				p.requires_grad = False
 				n += 1
-	# print(len(list(filter(lambda p: p.requires_grad, deepVO.parameters()))))
-	# sys.exit(1)
 
 if cmd.optMethod == 'adam':
 	optimizer = optim.Adam(deepVO.parameters(), lr = cmd.lr, betas = (cmd.beta1, cmd.beta2), weight_decay = cmd.weightDecay, amsgrad = False)

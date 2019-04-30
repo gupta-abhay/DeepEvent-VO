@@ -5,7 +5,6 @@ import subprocess
 # Helper method to return the first index in a sorted list that is greater than or equal to
 # the given key
 def firstGE(sortedList, inputKey):
-
 	# Basically, do a binary search
 	low = 0
 	high = len(sortedList)
@@ -22,12 +21,10 @@ def firstGE(sortedList, inputKey):
 	else:
 		return -1
 
-
 """
 Script to query nvidia-smi.
 https://discuss.pytorch.org/t/access-gpu-memory-usage-in-pytorch/3192/4
 """
-
 def get_gpu_memory_map():
 	"""Get the current gpu usage.
 

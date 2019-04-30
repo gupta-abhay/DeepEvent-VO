@@ -4,7 +4,6 @@ Custom loss functions go here
 
 import torch
 
-
 # Mahalanobis distance implementation
 # Inputs: prediction, gt (usually 1 x 6 vectors)
 # Optional input: infoMat (usually a 6 x 6 information (i.e., inverse covariance) matrix)

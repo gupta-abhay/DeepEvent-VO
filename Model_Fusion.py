@@ -25,7 +25,7 @@ class DeepVO(nn.Module):
 		# There are 6 conv stages (some stages have >1 conv layers), which effectively reduce an 
 		# image to 1/64 th of its initial dimensions. Further, the final conv layer has 1024
 		# filters, hence, numConcatFeatures = 1024 * (wd/64) * (ht/64) = (wd * ht) / 4
-		self.numConcatFeatures = int((self.imageWidth*self.imageHeight)/4) 
+		self.numConcatFeatures = int((self.imageWidth*self.imageHeight)/4)
 
 		# Activation functions to be used in the network
 		self.activation = activation
@@ -93,7 +93,6 @@ class DeepVO(nn.Module):
 		else:
 			self.use_flownet = False
 
-
 		"""
 		Initialize variables required for the network
 		"""
@@ -121,6 +120,30 @@ class DeepVO(nn.Module):
 			self.conv5_bn = nn.BatchNorm2d(512)
 			self.conv5_1_bn = nn.BatchNorm2d(512)
 			self.conv6_bn = nn.BatchNorm2d(1024)
+
+		self.conv7   = nn.Conv2d(4, 64, 7, 2, 3, bias = self.bias)
+		self.conv8   = nn.Conv2d(64, 128, 5, 2, 2, bias = self.bias)
+		self.conv9   = nn.Conv2d(128, 256, 5, 2, 2, bias = self.bias)
+		self.conv9_1 = nn.Conv2d(256, 256, 3, 1, 1, bias = self.bias)
+		self.conv10   = nn.Conv2d(256, 512, 3, 2, 1, bias = self.bias)
+		self.conv10_1 = nn.Conv2d(512, 512, 3, 1, 1, bias = self.bias)
+		self.conv11   = nn.Conv2d(512, 512, 3, 2, 1, bias = self.bias)
+		self.conv11_1 = nn.Conv2d(512, 512, 3, 1, 1, bias = self.bias)
+		self.conv12   = nn.Conv2d(512, 1024, 3, 2, 1, bias = self.bias)
+
+		if self.batchnorm:
+			self.conv7_bn = nn.BatchNorm2d(64)
+			self.conv8_bn = nn.BatchNorm2d(128)
+			self.conv9_bn = nn.BatchNorm2d(256)
+			self.conv9_1_bn = nn.BatchNorm2d(256)
+			self.conv10_bn = nn.BatchNorm2d(512)
+			self.conv10_1_bn = nn.BatchNorm2d(512)
+			self.conv11_bn = nn.BatchNorm2d(512)
+			self.conv11_1_bn = nn.BatchNorm2d(512)
+			self.conv12_bn = nn.BatchNorm2d(1024)
+
+		self.conv13 = nn.Conv2d(2048, 1024, 3, 2, 1, bias = self.bias)
+		self.conv14 = nn.Conv2d(1024, 1024, 3, 2, 1, bias = self.bias)
 
 		"""
 		# Create LSTMCell, output, and cellstate variables
@@ -153,29 +176,6 @@ class DeepVO(nn.Module):
 			self.h2 = torch.zeros(1, self.hidden_units_LSTM[1])
 			self.c2 = torch.zeros(1, self.hidden_units_LSTM[1])
 
-		
-		# # Create variables for LSTM outputs and cellstates
-
-		# # self.LSTMOutputs = []		# ???
-		# # self.LSTMCellstates = []	# ???
-		# for i in range(self.numLSTMCells):
-		# 	if i == 0:
-		# 		self.LSTMCells.append(nn.LSTMCell(122880, self.hidden_units_LSTM[i]))
-		# 	else:
-		# 		self.LSTMCells.append(nn.LSTMCell(self.hidden_units_LSTM[i-1], \
-		# 			self.hidden_units_LSTM[i]))
-		# 	# self.LSTMOutputs.append(torch.zeros(1, self.hidden_units_LSTM[i]))		# ???
-		# 	# self.LSTMCellstates.append(torch.zeros(1, self.hidden_units_LSTM[i]))		# ???
-		# 	self.LSTMOutputs.append(nn.Parameter())
-		
-
-		# self.lstm1 = nn.LSTMCell(122880, 1024)
-		# self.h1 = torch.zeros(1, 1024)
-		# self.c1 = torch.zeros(1, 1024)
-		# self.lstm2 = nn.LSTMCell(1024, 1024)
-		# self.h2 = torch.zeros(1, 1024)
-		# self.c2 = torch.zeros(1, 1024)
-
 		# FC layers
 		
 		self.fc1 = nn.Linear(self.hidden_units_LSTM[self.numLSTMCells-1], 128)
@@ -195,30 +195,14 @@ class DeepVO(nn.Module):
 
 
 	def forward(self, x, reset_hidden = False):
+		x_img = x[:,:6,:,:]
+		print (x_img.shape)
+
+		x_event = x[:,6:,:,:]
+		print (x_event.shape)
 
 		if not self.batchnorm:
-
-			# Forward pass through the conv layers
-			# if self.activation == 'relu':
-			# 	x = (F.relu(self.conv1(x)))
-			# 	x = (F.relu(self.conv2(x)))
-			# 	x = (F.relu(self.conv3(x)))
-			# 	x = (F.relu(self.conv3_1(x)))
-			# 	x = (F.relu(self.conv4(x)))
-			# 	x = (F.relu(self.conv4_1(x)))
-			# 	x = (F.relu(self.conv5(x)))
-			# 	x = (F.relu(self.conv5_1(x)))
-			# elif self.activation == 'selu':
-			# 	x = (F.selu(self.conv1(x)))
-			# 	x = (F.selu(self.conv2(x)))
-			# 	x = (F.selu(self.conv3(x)))
-			# 	x = (F.selu(self.conv3_1(x)))
-			# 	x = (F.selu(self.conv4(x)))
-			# 	x = (F.selu(self.conv4_1(x)))
-			# 	x = (F.selu(self.conv5(x)))
-			# 	x = (F.selu(self.conv5_1(x)))
-			
-			x = (F.leaky_relu(self.conv1(x)))
+			x = (F.leaky_relu(self.conv1(x_img)))
 			x = (F.leaky_relu(self.conv2(x)))
 			x = (F.leaky_relu(self.conv3(x)))
 			x = (F.leaky_relu(self.conv3_1(x)))
@@ -227,9 +211,30 @@ class DeepVO(nn.Module):
 			x = (F.leaky_relu(self.conv5(x)))
 			x = (F.leaky_relu(self.conv5_1(x)))
 			
-			x = ((self.conv6(x))) # No relu at the last conv
+			x = ((self.conv6(x)))
 
 			# Stacking the output from the final conv layer
+			# x = x.view(-1, self.numConcatFeatures)
+
+			y = (F.leaky_relu(self.conv7(x_event)))
+			y = (F.leaky_relu(self.conv8(y)))
+			y = (F.leaky_relu(self.conv9(y)))
+			y = (F.leaky_relu(self.conv9_1(y)))
+			y = (F.leaky_relu(self.conv10(y)))
+			y = (F.leaky_relu(self.conv10_1(y)))
+			y = (F.leaky_relu(self.conv11(y)))
+			y = (F.leaky_relu(self.conv11_1(y)))
+			
+			y = ((self.conv12(y)))
+
+			# y = y.view(-1, self.numConcatFeatures)
+
+			feat = torch.cat((x,y), 1)
+			print (feat.shape)
+
+			x = self.conv13(F.leaky_relu(feat))
+			x = self.conv14(x)
+
 			x = x.view(-1, self.numConcatFeatures)
 
 			# If hidden state is to be reset, perform the operation
