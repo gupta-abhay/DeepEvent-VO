@@ -284,7 +284,7 @@ for epoch in range(cmd.nepochs):
 	for s in val_seq:
 	 	seqLen = val_endFrames[i] - val_startFrames[i]
 	 	trajFile = os.path.join(write_dir, 'plots', 'traj', str(s).zfill(2), \
-	 		'traj' + str(epoch).zfill(3) + '.txt')
+	 		'traj_' + str(epoch).zfill(3) + '.txt')
 	 	if os.path.exists(trajFile):
 	 		traj = np.loadtxt(trajFile)
 	 		traj = traj[:,3:]
