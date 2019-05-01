@@ -1,17 +1,19 @@
+![Status Alpha](https://img.shields.io/badge/status-beta-yellow.svg)
+
 # DeepFusion-VO: Fusing Intensity and Event Frames for End-to-End Deep Visual Odometry
 
 This is the project which [@epiception](https://github.com/epiception), [@SuhitK](https:://github.com/SuhitK) and I worked on for the Robot Localization and Mapping (16-833) course project at CMU in Spring 2019. The motivation of the project is to see how [DeepVO](http://senwang.gitlab.io/DeepVO/) can be enhanced using event-frames. To read more about event cameras and event SLAM, see this [link](http://rpg.ifi.uzh.ch/research_dvs.html).
 
 ## Installation Instructions
 
-This is a `PyTorch` implementation. We assume `PyTorch` and dependencies are setup. This code has been tested on `PyTorch 0.4.1` with `CUDA 9.1` and `CUDNN 7.1.2`.
+This is a `PyTorch` implementation. This code has been tested on `PyTorch 0.4.1` with `CUDA 9.1` and `CUDNN 7.1.2`.
 
 ## Dependencies
 
 We have a dependency on a few packages, especially `tqdm`, `scikit-image`, `tensorbordX` and `matplotlib`. They can be installed using standard pip as below:
 
 ```
-pip install scipy scikit-image matplotlib tqdm natsort tensorboardX
+pip install scipy scikit-image matplotlib tqdm tensorboardX
 ```
 
 To replicate the `conda` environment that we used for our training and evaluation
