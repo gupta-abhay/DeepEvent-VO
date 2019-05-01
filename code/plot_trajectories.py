@@ -1,4 +1,4 @@
-from lieFunctions import axisAngle_to_rotMat, quat_to_rotMat, euler_to_rotMat
+from lie_functions import axisAngle_to_rotMat, quat_to_rotMat, euler_to_rotMat
 import os
 import matplotlib
 matplotlib.use('Agg')
@@ -7,10 +7,8 @@ import numpy as np
 import torch
 import glob
 
-
 import warnings
 warnings.filterwarnings("ignore")
-	
 
 def getGroundTruthTrajectory(seq, seqLength, dataDir):
 	

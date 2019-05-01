@@ -1,5 +1,5 @@
 import helpers
-from lieFunctions import rotMat_to_axisAngle, rotMat_to_quat, rotMat_to_euler
+from lie_functions import rotMat_to_axisAngle, rotMat_to_quat, rotMat_to_euler
 import numpy as np
 import os
 import scipy.misc as smc

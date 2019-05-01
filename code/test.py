@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 
 from liealgebra import rotMat_to_axisAngle
 
-
 def checkRotMattoAxisAngle():
 	# Check for axis angle to rotation matrix
 	axisAngle_file = open("./matlab/axisData.txt",'r')

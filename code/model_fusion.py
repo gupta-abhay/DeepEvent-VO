@@ -5,7 +5,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable as V
 
-
 # DeepVO model
 class DeepVO(nn.Module):
 

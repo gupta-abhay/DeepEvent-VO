@@ -1,6 +1,5 @@
 *.pyc
 models/*
-*.sh
 exp/*
 exp/*/*
 *.txt

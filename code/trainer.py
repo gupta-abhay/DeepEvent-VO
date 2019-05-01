@@ -3,8 +3,8 @@ Trainer class. Handles training and validation
 """
 
 from helpers import get_gpu_memory_map
-from KITTIDataset import KITTIDataset
-from Model import DeepVO
+from data_loader import KITTIDataset
+from model import DeepVO
 import numpy as np
 import os
 import sys
@@ -13,7 +13,6 @@ from torch.autograd import Variable
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm, trange
-
 
 class Trainer():
 
@@ -131,9 +130,9 @@ class Trainer():
 				self.loss_rot += curloss_rot
 				self.loss_trans += curloss_trans
 
-				if np.random.normal() < -0.9:
-					tqdm.write('rot: ' + str(rot_pred.data) + ' ' + str(rot_gt.data), file = sys.stdout)
-					tqdm.write('trans: ' + str(trans_pred.data) + ' ' + str(trans_gt.data), file = sys.stdout)
+				#if np.random.normal() < -0.9:
+#					tqdm.write('rot: ' + str(rot_pred.data) + ' ' + str(rot_gt.data), file = sys.stdout)
+#					tqdm.write('trans: ' + str(trans_pred.data) + ' ' + str(trans_gt.data), file = sys.stdout)
 
 				self.loss += sum([self.args.scf * self.loss_fn(rot_pred, rot_gt), \
 					self.loss_fn(trans_pred, trans_gt)])
@@ -155,6 +154,8 @@ class Trainer():
 
 			elapsedBatches += 1
 			self.iters += 1
+			if self.iters % 50 == 0:
+				print (self.iters)
 			
 			# if endOfSeq is True:
 			if elapsedBatches >= self.args.trainBatch or endOfSeq is True:
@@ -184,11 +185,11 @@ class Trainer():
 					self.loss = sum([self.args.gamma * reg_loss, self.loss])
 
 				# Print stats
-				if self.args.outputParameterization != 'mahalanobis':
-					tqdm.write('Rot Loss: ' + str(np.mean(rotLoss_seq)) + ' Trans Loss: ' + \
-						str(np.mean(transLoss_seq)), file = sys.stdout)
-				else:
-					tqdm.write('Total Loss: ' + str(np.mean(totalLoss_seq)), file = sys.stdout)
+#				if self.args.outputParameterization != 'mahalanobis':
+#					tqdm.write('Rot Loss: ' + str(np.mean(rotLoss_seq)) + ' Trans Loss: ' + \
+#						str(np.mean(transLoss_seq)), file = sys.stdout)
+#				else:
+#					tqdm.write('Total Loss: ' + str(np.mean(totalLoss_seq)), file = sys.stdout)
 				rotLoss_seq = []
 				transLoss_seq = []
 				totalLoss_seq = []
@@ -200,7 +201,7 @@ class Trainer():
 				l = 0
 				paramList = list(filter(lambda p : p.grad is not None, [param for param in self.model.parameters()]))
 				totalNorm = sum([(p.grad.data.norm(2.) ** 2.) for p in paramList]) ** (1. / 2)
-				tqdm.write('gradNorm: ' + str(totalNorm.item()))
+#				tqdm.write('gradNorm: ' + str(totalNorm.item()))
 
 				# Perform gradient clipping, if enabled
 				if self.args.gradClip is not None:
@@ -311,11 +312,11 @@ class Trainer():
 			if endOfSeq is True:
 
 				# Print stats
-				if self.args.outputParameterization != 'mahalanobis':
-					tqdm.write('Rot Loss: ' + str(np.mean(rotLoss_seq)) + ' Trans Loss: ' + \
-						str(np.mean(transLoss_seq)), file = sys.stdout)
-				else:
-					tqdm.write('Total Loss: ' + str(np.mean(totalLoss_seq)), file = sys.stdout)
+#				if self.args.outputParameterization != 'mahalanobis':
+#					tqdm.write('Rot Loss: ' + str(np.mean(rotLoss_seq)) + ' Trans Loss: ' + \
+#						str(np.mean(transLoss_seq)), file = sys.stdout)
+#				else:
+#					tqdm.write('Total Loss: ' + str(np.mean(totalLoss_seq)), file = sys.stdout)
 				rotLoss_seq = []
 				transLoss_seq = []
 				totalLoss_seq = []

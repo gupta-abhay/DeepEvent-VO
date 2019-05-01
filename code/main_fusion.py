@@ -24,12 +24,11 @@ import datetime
 
 # Other project files with definitions
 import args
-from KITTIDataset import KITTIDataset
+from data_loader_fusion import KITTIDataset
 from losses import MahalanobisLoss
-from Model import DeepVO
-from plotTrajectories import plotSequenceRelative, plotSequenceAbsolute
-from Trainer import Trainer
-
+from model_fusion import DeepVO
+from plot_trajectories_fusion import plotSequenceRelative, plotSequenceAbsolute
+from trainer import Trainer
 
 # Parse commandline arguements
 cmd = args.arguments
@@ -60,27 +59,27 @@ cmd.basedir = os.path.dirname(os.path.realpath(__file__))
 if not os.path.exists(os.path.join(cmd.basedir, cmd.cachedir, cmd.dataset)):
 	os.makedirs(os.path.join(cmd.basedir, cmd.cachedir, cmd.dataset))
 
-write_dir = './runs/deepvo/deepvo_' + str(datetime.datetime.now())
+write_dir = './runs/deepvo_fusion/deepvo_' + str(datetime.datetime.now())
 cmd.expDir = os.path.join(cmd.basedir, cmd.cachedir, cmd.dataset, cmd.expID)
 if not os.path.exists(write_dir):
 	os.makedirs(write_dir)
 	print('Created dir: ', write_dir)
-if not os.path.exists(os.path.join(write_dir, 'models')):
-	os.makedirs(os.path.join(write_dir, 'models'))
-	print('Created dir: ', os.path.join(write_dir, 'models'))
+if not os.path.exists(os.path.join(write_dir, 'models_fusion')):
+	os.makedirs(os.path.join(write_dir, 'models_fusion'))
+	print('Created dir: ', os.path.join(write_dir, 'models_fusion'))
 if not os.path.exists(os.path.join(write_dir, 'plots', 'traj')):
 	os.makedirs(os.path.join(write_dir, 'plots', 'traj'))
 	print('Created dir: ', os.path.join(write_dir, 'plots', 'traj'))
-if not os.path.exists(os.path.join(write_dir, 'plots', 'loss')):
-	os.makedirs(os.path.join(write_dir, 'plots', 'loss'))
-	print('Created dir: ', os.path.join(write_dir, 'plots', 'loss'))
+if not os.path.exists(os.path.join(write_dir, 'plots', 'loss_fusion')):
+	os.makedirs(os.path.join(write_dir, 'plots', 'loss_fusion'))
+	print('Created dir: ', os.path.join(write_dir, 'plots', 'loss_fusion'))
 for seq in range(11):
 	if not os.path.exists(os.path.join(write_dir, 'plots', 'traj', str(seq).zfill(2))):
 		os.makedirs(os.path.join(write_dir, 'plots', 'traj', str(seq).zfill(2)))
 		print('Created dir: ', os.path.join(write_dir, 'plots', 'traj', str(seq).zfill(2)))
 
 # Save all the command line arguements in a text file in the experiment directory.
-cmdFile = open(os.path.join(write_dir, 'args.txt'), 'w')
+cmdFile = open(os.path.join(write_dir, 'args_fusion.txt'), 'w')
 for arg in vars(cmd):
 	cmdFile.write(arg + ' ' + str(getattr(cmd, arg)) + '\n')
 cmdFile.close()
@@ -159,21 +158,16 @@ totalLosses_val = []
 bestValLoss = np.inf
 
 # Create datasets for the current epoch
-# train_seq = [0, 1, 2, 8, 9]
 train_seq = [0]
-# train_startFrames = [0, 0, 0, 0, 0]
-# train_endFrames = [4443, 1100, 4660, 4070, 1590]
 train_startFrames = [0]
-train_endFrames = [100]
-val_seq = [2]
+train_endFrames = [3399]
+val_seq = [1]
 val_startFrames = [0]
-val_endFrames = [100]
-# val_seq = [3, 4, 5, 6, 7, 10]
-# val_startFrames = [0, 0, 0, 0, 0, 0]
-# val_endFrames = [800, 270, 2760, 1100, 1100, 1200]
+val_endFrames = [1043]
 
 
 for epoch in range(cmd.nepochs):
+
 	print('================> Starting epoch: '  + str(epoch+1) + '/' + str(cmd.nepochs))
 
 	train_seq_cur_epoch = []
@@ -210,9 +204,7 @@ for epoch in range(cmd.nepochs):
 	kitti_val = KITTIDataset(cmd.datadir, val_seq, val_startFrames, val_endFrames, \
 	 	width = cmd.imageWidth, height = cmd.imageHeight, parameterization = cmd.outputParameterization, \
 	 	outputFrame = cmd.outputFrame)
-	# print (cmd.outputFrame)
-	# Initialize a trainer (Note that any accumulated gradients on the model are flushed
-	# upon creation of this Trainer object)
+	
 	trainer = Trainer(cmd, epoch, deepVO, kitti_train, kitti_val, criterion, write_dir, optimizer, \
 		scheduler = None)
 
@@ -232,13 +224,13 @@ for epoch in range(cmd.nepochs):
 
 	# Snapshot
 	if cmd.snapshotStrategy == 'default':
-		if epoch % cmd.snapshot == 0 or epoch == cmd.nepochs - 1 and epoch > 0:
+		if epoch % cmd.snapshot == 0 or epoch == cmd.nepochs - 1:
 			print('Saving model after epoch', epoch, '...')
-			torch.save(deepVO, os.path.join(cmd.expDir, 'models', 'model' + str(epoch).zfill(3) + '.pt'))
+			torch.save(deepVO, os.path.join(cmd.expDir, 'models_fusion', 'model' + str(epoch).zfill(3) + '.pt'))
 	elif cmd.snapshotStrategy == 'recent':
 		# Save the most recent model
 		print('Saving model after epoch', epoch, '...')
-		torch.save(deepVO, os.path.join(cmd.expDir, 'models', 'recent.pt'))
+		torch.save(deepVO, os.path.join(cmd.expDir, 'models_fusion', 'recent.pt'))
 	elif cmd.snapshotStrategy == 'best' or 'none':
 		# If we only want to save the best model, defer the decision
 		pass
@@ -258,7 +250,7 @@ for epoch in range(cmd.nepochs):
 		if np.mean(totalLosses_val_cur) <= bestValLoss:
 			bestValLoss = np.mean(totalLosses_val_cur)
 			print('Saving model after epoch', epoch, '...')
-			torch.save(deepVO, os.path.join(cmd.expDir, 'models', 'best' + '.pt'))
+			torch.save(deepVO, os.path.join(cmd.expDir, 'models_fusion', 'best_fusion' + '.pt'))
 
 	if cmd.tensorboardX is True:
 		writer.add_scalar('loss/train/rot_loss_train', np.mean(rotLosses_train), epoch)
@@ -276,7 +268,7 @@ for epoch in range(cmd.nepochs):
 	ax.legend()
 	plt.ylabel('Loss')
 	plt.xlabel('Batch #')
-	fig.savefig(os.path.join(write_dir, 'loss_train_' + str(epoch).zfill(3)))
+	fig.savefig(os.path.join(write_dir, 'loss_train_fusion_' + str(epoch).zfill(3)))
 
 	fig, ax = plt.subplots(1)
 	ax.plot(range(len(rotLosses_val)), rotLosses_val, 'r', label = 'rot_train')
@@ -285,7 +277,7 @@ for epoch in range(cmd.nepochs):
 	ax.legend()
 	plt.ylabel('Loss')
 	plt.xlabel('Batch #')
-	fig.savefig(os.path.join(write_dir, 'loss_val_' + str(epoch).zfill(3)))
+	fig.savefig(os.path.join(write_dir, 'loss_val_fusion_' + str(epoch).zfill(3)))
 
 	# Plot trajectories (validation sequences)
 	i = 0
