@@ -1,4 +1,4 @@
-![Status Alpha](https://img.shields.io/badge/status-beta-yellow.svg)
+![Build Failing](https://img.shields.io/badge/build-passing-brightgreen.svg)  ![Status Alpha](https://img.shields.io/badge/status-beta-blueviolet.svg)
 
 # DeepFusion-VO: Fusing Intensity and Event Frames for End-to-End Deep Visual Odometry
 
@@ -21,6 +21,8 @@ To replicate the `conda` environment that we used for our training and evaluatio
 ```
 conda env create -f requirements.yml
 ```
+
+The model assumes that FlowNet pre-trained weights are available for training. You can download the weights from [@ClementPinard's implementation](https://github.com/ClementPinard/FlowNetPytorch). Particularly, we need the weights for FlowNetS (flownets_EPE1.951.pth.tar). Instructions for downloadind the weights are in the README given there.
 
 ## Datasets
 
