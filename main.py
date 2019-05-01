@@ -164,10 +164,10 @@ train_seq = [0]
 # train_startFrames = [0, 0, 0, 0, 0]
 # train_endFrames = [4443, 1100, 4660, 4070, 1590]
 train_startFrames = [0]
-train_endFrames = [3399]
-val_seq = [1]
+train_endFrames = [100]
+val_seq = [2]
 val_startFrames = [0]
-val_endFrames = [1044]
+val_endFrames = [100]
 # val_seq = [3, 4, 5, 6, 7, 10]
 # val_startFrames = [0, 0, 0, 0, 0, 0]
 # val_endFrames = [800, 270, 2760, 1100, 1100, 1200]
@@ -213,7 +213,7 @@ for epoch in range(cmd.nepochs):
 	# print (cmd.outputFrame)
 	# Initialize a trainer (Note that any accumulated gradients on the model are flushed
 	# upon creation of this Trainer object)
-	trainer = Trainer(cmd, epoch, deepVO, kitti_train, kitti_val, criterion, optimizer, \
+	trainer = Trainer(cmd, epoch, deepVO, kitti_train, kitti_val, criterion, write_dir, optimizer, \
 		scheduler = None)
 
 	# Training loop

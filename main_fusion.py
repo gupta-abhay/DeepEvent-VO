@@ -67,16 +67,16 @@ if not os.path.exists(write_dir):
 if not os.path.exists(os.path.join(write_dir, 'models_fusion')):
 	os.makedirs(os.path.join(write_dir, 'models_fusion'))
 	print('Created dir: ', os.path.join(write_dir, 'models_fusion'))
-if not os.path.exists(os.path.join(write_dir, 'plots', 'traj_fusion')):
-	os.makedirs(os.path.join(write_dir, 'plots', 'traj_fusion'))
-	print('Created dir: ', os.path.join(write_dir, 'plots', 'traj_fusion'))
+if not os.path.exists(os.path.join(write_dir, 'plots', 'traj')):
+	os.makedirs(os.path.join(write_dir, 'plots', 'traj'))
+	print('Created dir: ', os.path.join(write_dir, 'plots', 'traj'))
 if not os.path.exists(os.path.join(write_dir, 'plots', 'loss_fusion')):
 	os.makedirs(os.path.join(write_dir, 'plots', 'loss_fusion'))
 	print('Created dir: ', os.path.join(write_dir, 'plots', 'loss_fusion'))
 for seq in range(11):
-	if not os.path.exists(os.path.join(write_dir, 'plots', 'traj_fusion', str(seq).zfill(2))):
-		os.makedirs(os.path.join(write_dir, 'plots', 'traj_fusion', str(seq).zfill(2)))
-		print('Created dir: ', os.path.join(write_dir, 'plots', 'traj_fusion', str(seq).zfill(2)))
+	if not os.path.exists(os.path.join(write_dir, 'plots', 'traj', str(seq).zfill(2))):
+		os.makedirs(os.path.join(write_dir, 'plots', 'traj', str(seq).zfill(2)))
+		print('Created dir: ', os.path.join(write_dir, 'plots', 'traj', str(seq).zfill(2)))
 
 # Save all the command line arguements in a text file in the experiment directory.
 cmdFile = open(os.path.join(write_dir, 'args_fusion.txt'), 'w')
@@ -161,9 +161,9 @@ bestValLoss = np.inf
 train_seq = [0]
 train_startFrames = [0]
 train_endFrames = [3399]
-val_seq = [1]
+val_seq = [2]
 val_startFrames = [0]
-val_endFrames = [1044]
+val_endFrames = [1043]
 
 
 for epoch in range(cmd.nepochs):
@@ -205,7 +205,7 @@ for epoch in range(cmd.nepochs):
 	 	width = cmd.imageWidth, height = cmd.imageHeight, parameterization = cmd.outputParameterization, \
 	 	outputFrame = cmd.outputFrame)
 	
-	trainer = Trainer(cmd, epoch, deepVO, kitti_train, kitti_val, criterion, optimizer, \
+	trainer = Trainer(cmd, epoch, deepVO, kitti_train, kitti_val, criterion, write_dir, optimizer, \
 		scheduler = None)
 
 	# Training loop
@@ -284,7 +284,7 @@ for epoch in range(cmd.nepochs):
 	for s in val_seq:
 	 	seqLen = val_endFrames[i] - val_startFrames[i]
 	 	trajFile = os.path.join(write_dir, 'plots', 'traj', str(s).zfill(2), \
-	 		'traj_fusion_' + str(epoch).zfill(3) + '.txt')
+	 		'traj' + str(epoch).zfill(3) + '.txt')
 	 	if os.path.exists(trajFile):
 	 		traj = np.loadtxt(trajFile)
 	 		traj = traj[:,3:]

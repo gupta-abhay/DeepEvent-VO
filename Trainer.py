@@ -17,7 +17,7 @@ from tqdm import tqdm, trange
 
 class Trainer():
 
-	def __init__(self, args, epoch, model, train_set, val_set, loss_fn, optimizer, scheduler = None, \
+	def __init__(self, args, epoch, model, train_set, val_set, loss_fn, write_dir, optimizer, scheduler = None, \
 		gradClip = None):
 
 		# Commandline arguments
@@ -60,6 +60,7 @@ class Trainer():
 
 		# Keep track of number of iters (useful for tensorboardX visualization)
 		self.iters = 0
+		self.write_dir = write_dir
 
 
 	# Train for one epoch
@@ -320,7 +321,7 @@ class Trainer():
 				totalLoss_seq = []
 
 				# Write predicted trajectory to file
-				saveFile = os.path.join(self.args.expDir, 'plots', 'traj', str(seq).zfill(2), \
+				saveFile = os.path.join(self.write_dir, 'plots', 'traj', str(seq).zfill(2), \
 					'traj_' + str(self.curEpoch).zfill(3) + '.txt')
 				np.savetxt(saveFile, traj_pred, newline = '\n')
 				
