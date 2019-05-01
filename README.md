@@ -8,7 +8,7 @@ This is the project which [@epiception](https://github.com/epiception), [@SuhitK
 
 This is a `PyTorch` implementation. This code has been tested on `PyTorch 0.4.1` with `CUDA 9.1` and `CUDNN 7.1.2`.
 
-## Dependencies
+#### Dependencies
 
 We have a dependency on a few packages, especially `tqdm`, `scikit-image`, `tensorbordX` and `matplotlib`. They can be installed using standard pip as below:
 
