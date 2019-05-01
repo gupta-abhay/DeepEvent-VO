@@ -16,7 +16,7 @@ def getGroundTruthTrajectory(seq, seqLength, dataDir):
 	
 	cameraTraj = np.empty([seqLength,3])
 	# poses = open(os.path.join(dataDir, 'poses', str(seq).zfill(2) + '.txt'))
-	poses = np.loadtxt(os.path.join(dataDir, 'poses', str(seq).zfill(2) + '.txt'))
+	poses = np.loadtxt(os.path.join(dataDir, 'poses', str(seq).zfill(1) + '.txt'))
 	# poses = open("/data/milatmp1/sharmasa/"+ dataset + "/dataset/poses/" + str(seq).zfill(2) + ".txt").readlines()
 	for frame in range(seqLength):
 		# pose = np.concatenate((np.asarray([(float(i)) for i in poses[frame].split(' ')]).reshape(3,4) , [[0.0,0.0,0.0,1.0]]), axis=0);

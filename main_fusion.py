@@ -20,13 +20,14 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm, trange
+import datetime
 
 # Other project files with definitions
 import args
 from KITTIDataset_Event import KITTIDataset
 from losses import MahalanobisLoss
 from Model_Fusion import DeepVO
-from plotTrajectories import plotSequenceRelative, plotSequenceAbsolute
+from plotTrajectories_fusion import plotSequenceRelative, plotSequenceAbsolute
 from Trainer import Trainer
 
 # Parse commandline arguements
@@ -58,26 +59,27 @@ cmd.basedir = os.path.dirname(os.path.realpath(__file__))
 if not os.path.exists(os.path.join(cmd.basedir, cmd.cachedir, cmd.dataset)):
 	os.makedirs(os.path.join(cmd.basedir, cmd.cachedir, cmd.dataset))
 
+write_dir = './runs/deepvo_fusion/deepvo_' + str(datetime.datetime.now())
 cmd.expDir = os.path.join(cmd.basedir, cmd.cachedir, cmd.dataset, cmd.expID)
-if not os.path.exists(cmd.expDir):
-	os.makedirs(cmd.expDir)
-	print('Created dir: ', cmd.expDir)
-if not os.path.exists(os.path.join(cmd.expDir, 'models')):
-	os.makedirs(os.path.join(cmd.expDir, 'models'))
-	print('Created dir: ', os.path.join(cmd.expDir, 'models'))
-if not os.path.exists(os.path.join(cmd.expDir, 'plots', 'traj')):
-	os.makedirs(os.path.join(cmd.expDir, 'plots', 'traj'))
-	print('Created dir: ', os.path.join(cmd.expDir, 'plots', 'traj'))
-if not os.path.exists(os.path.join(cmd.expDir, 'plots', 'loss')):
-	os.makedirs(os.path.join(cmd.expDir, 'plots', 'loss'))
-	print('Created dir: ', os.path.join(cmd.expDir, 'plots', 'loss'))
+if not os.path.exists(write_dir):
+	os.makedirs(write_dir)
+	print('Created dir: ', write_dir)
+if not os.path.exists(os.path.join(write_dir, 'models_fusion')):
+	os.makedirs(os.path.join(write_dir, 'models_fusion'))
+	print('Created dir: ', os.path.join(write_dir, 'models_fusion'))
+if not os.path.exists(os.path.join(write_dir, 'plots', 'traj_fusion')):
+	os.makedirs(os.path.join(write_dir, 'plots', 'traj_fusion'))
+	print('Created dir: ', os.path.join(write_dir, 'plots', 'traj_fusion'))
+if not os.path.exists(os.path.join(write_dir, 'plots', 'loss_fusion')):
+	os.makedirs(os.path.join(write_dir, 'plots', 'loss_fusion'))
+	print('Created dir: ', os.path.join(write_dir, 'plots', 'loss_fusion'))
 for seq in range(11):
-	if not os.path.exists(os.path.join(cmd.expDir, 'plots', 'traj', str(seq).zfill(2))):
-		os.makedirs(os.path.join(cmd.expDir, 'plots', 'traj', str(seq).zfill(2)))
-		print('Created dir: ', os.path.join(cmd.expDir, 'plots', 'traj', str(seq).zfill(2)))
+	if not os.path.exists(os.path.join(write_dir, 'plots', 'traj_fusion', str(seq).zfill(2))):
+		os.makedirs(os.path.join(write_dir, 'plots', 'traj_fusion', str(seq).zfill(2)))
+		print('Created dir: ', os.path.join(write_dir, 'plots', 'traj_fusion', str(seq).zfill(2)))
 
 # Save all the command line arguements in a text file in the experiment directory.
-cmdFile = open(os.path.join(cmd.expDir, 'args.txt'), 'w')
+cmdFile = open(os.path.join(write_dir, 'args_fusion.txt'), 'w')
 for arg in vars(cmd):
 	cmdFile.write(arg + ' ' + str(getattr(cmd, arg)) + '\n')
 cmdFile.close()
@@ -85,7 +87,7 @@ cmdFile.close()
 # TensorboardX visualization support
 if cmd.tensorboardX is True:
 	from tensorboardX import SummaryWriter
-	writer = SummaryWriter(log_dir = cmd.expDir)
+	writer = SummaryWriter(log_dir = write_dir)
 
 ########################################################################
 ### Model Definition + Weight init + FlowNet weight loading ###
@@ -95,15 +97,15 @@ if cmd.tensorboardX is True:
 if cmd.modelType == 'flownet' or cmd.modelType is None:
 	# Model definition without batchnorm
 	deepVO = DeepVO(cmd.imageWidth, cmd.imageHeight, activation = cmd.activation, parameterization = cmd.outputParameterization, \
-		numLSTMCells = cmd.numLSTMCells, hidden_units_LSTM = [1024, 1024])
+		numLSTMCells = cmd.numLSTMCells, hidden_units_LSTM = [1024, 1024], flownet_weights_path=cmd.loadModel)
 elif cmd.modelType == 'flownet_batchnorm':
 	# Model definition with batchnorm
-	deepVO = DeepVO(activation = cmd.activation, parameterization = cmd.outputParameterization, \
+	deepVO = DeepVO(cmd.imageWidth, cmd.imageHeight, activation = cmd.activation, parameterization = cmd.outputParameterization, \
 		batchnorm = True, flownet_weights_path = cmd.loadModel)
 
 # Load a pretrained DeepVO model
-if cmd.modelType == 'deepvo':
-	deepVO = torch.load(cmd.loadModel)
+if cmd.modelType == 'deepvo' or cmd.modelType == 'flownet':
+	deepVO.load_state_dict(torch.load(cmd.loadModel), strict=False)
 else:
 	# Initialize weights for fully connected layers and for LSTMCells
 	deepVO.init_weights()
@@ -156,18 +158,12 @@ totalLosses_val = []
 bestValLoss = np.inf
 
 # Create datasets for the current epoch
-# train_seq = [0, 1, 2, 8, 9]
 train_seq = [0]
-# train_startFrames = [0, 0, 0, 0, 0]
-# train_endFrames = [4443, 1100, 4660, 4070, 1590]
 train_startFrames = [0]
 train_endFrames = [3399]
 val_seq = [1]
 val_startFrames = [0]
-val_endFrames = [1043]
-# val_seq = [3, 4, 5, 6, 7, 10]
-# val_startFrames = [0, 0, 0, 0, 0, 0]
-# val_endFrames = [800, 270, 2760, 1100, 1100, 1200]
+val_endFrames = [1044]
 
 
 for epoch in range(cmd.nepochs):
@@ -208,9 +204,7 @@ for epoch in range(cmd.nepochs):
 	kitti_val = KITTIDataset(cmd.datadir, val_seq, val_startFrames, val_endFrames, \
 	 	width = cmd.imageWidth, height = cmd.imageHeight, parameterization = cmd.outputParameterization, \
 	 	outputFrame = cmd.outputFrame)
-	# print (cmd.outputFrame)
-	# Initialize a trainer (Note that any accumulated gradients on the model are flushed
-	# upon creation of this Trainer object)
+	
 	trainer = Trainer(cmd, epoch, deepVO, kitti_train, kitti_val, criterion, optimizer, \
 		scheduler = None)
 
@@ -232,11 +226,11 @@ for epoch in range(cmd.nepochs):
 	if cmd.snapshotStrategy == 'default':
 		if epoch % cmd.snapshot == 0 or epoch == cmd.nepochs - 1:
 			print('Saving model after epoch', epoch, '...')
-			torch.save(deepVO, os.path.join(cmd.expDir, 'models', 'model' + str(epoch).zfill(3) + '.pt'))
+			torch.save(deepVO, os.path.join(cmd.expDir, 'models_fusion', 'model' + str(epoch).zfill(3) + '.pt'))
 	elif cmd.snapshotStrategy == 'recent':
 		# Save the most recent model
 		print('Saving model after epoch', epoch, '...')
-		torch.save(deepVO, os.path.join(cmd.expDir, 'models', 'recent.pt'))
+		torch.save(deepVO, os.path.join(cmd.expDir, 'models_fusion', 'recent.pt'))
 	elif cmd.snapshotStrategy == 'best' or 'none':
 		# If we only want to save the best model, defer the decision
 		pass
@@ -256,15 +250,15 @@ for epoch in range(cmd.nepochs):
 		if np.mean(totalLosses_val_cur) <= bestValLoss:
 			bestValLoss = np.mean(totalLosses_val_cur)
 			print('Saving model after epoch', epoch, '...')
-			torch.save(deepVO, os.path.join(cmd.expDir, 'models', 'best' + '.pt'))
+			torch.save(deepVO, os.path.join(cmd.expDir, 'models_fusion', 'best_fusion' + '.pt'))
 
 	if cmd.tensorboardX is True:
-		writer.add_scalar('loss/train/rot_loss_train', np.mean(rotLosses_train), trainer.iters)
-		writer.add_scalar('loss/train/trans_loss_train', np.mean(transLosses_train), trainer.iters)
-		writer.add_scalar('loss/train/total_loss_train', np.mean(totalLosses_train), trainer.iters)
-		writer.add_scalar('loss/train/rot_loss_val', np.mean(rotLosses_val), trainer.iters)
-		writer.add_scalar('loss/train/trans_loss_val', np.mean(transLosses_val), trainer.iters)
-		writer.add_scalar('loss/train/total_loss_val', np.mean(totalLosses_val), trainer.iters)
+		writer.add_scalar('loss/train/rot_loss_train', np.mean(rotLosses_train), epoch)
+		writer.add_scalar('loss/train/trans_loss_train', np.mean(transLosses_train), epoch)
+		writer.add_scalar('loss/train/total_loss_train', np.mean(totalLosses_train), epoch)
+		writer.add_scalar('loss/train/rot_loss_val', np.mean(rotLosses_val), epoch)
+		writer.add_scalar('loss/train/trans_loss_val', np.mean(transLosses_val), epoch)
+		writer.add_scalar('loss/train/total_loss_val', np.mean(totalLosses_val), epoch)
 
 	# Save training curves
 	fig, ax = plt.subplots(1)
@@ -274,7 +268,7 @@ for epoch in range(cmd.nepochs):
 	ax.legend()
 	plt.ylabel('Loss')
 	plt.xlabel('Batch #')
-	fig.savefig(os.path.join(cmd.expDir, 'loss_train_' + str(epoch).zfill(3)))
+	fig.savefig(os.path.join(write_dir, 'loss_train_fusion_' + str(epoch).zfill(3)))
 
 	fig, ax = plt.subplots(1)
 	ax.plot(range(len(rotLosses_val)), rotLosses_val, 'r', label = 'rot_train')
@@ -283,21 +277,21 @@ for epoch in range(cmd.nepochs):
 	ax.legend()
 	plt.ylabel('Loss')
 	plt.xlabel('Batch #')
-	fig.savefig(os.path.join(cmd.expDir, 'loss_val_' + str(epoch).zfill(3)))
+	fig.savefig(os.path.join(write_dir, 'loss_val_fusion_' + str(epoch).zfill(3)))
 
 	# Plot trajectories (validation sequences)
 	i = 0
 	for s in val_seq:
 	 	seqLen = val_endFrames[i] - val_startFrames[i]
-	 	trajFile = os.path.join(cmd.expDir, 'plots', 'traj', str(s).zfill(2), \
-	 		'traj_' + str(epoch).zfill(3) + '.txt')
+	 	trajFile = os.path.join(write_dir, 'plots', 'traj', str(s).zfill(2), \
+	 		'traj_fusion_' + str(epoch).zfill(3) + '.txt')
 	 	if os.path.exists(trajFile):
 	 		traj = np.loadtxt(trajFile)
 	 		traj = traj[:,3:]
 	 		if cmd.outputFrame == 'local':
-	 			plotSequenceRelative(cmd.expDir, s, seqLen, traj, cmd.datadir, cmd, epoch)
+	 			plotSequenceRelative(write_dir, s, seqLen, traj, cmd.datadir, cmd, epoch)
 	 		elif cmd.outputFrame == 'global':
-	 			plotSequenceAbsolute(cmd.expDir, s, seqLen, traj, cmd.datadir, cmd, epoch)
+	 			plotSequenceAbsolute(write_dir, s, seqLen, traj, cmd.datadir, cmd, epoch)
 	 	i += 1
 
 print('Done !!')

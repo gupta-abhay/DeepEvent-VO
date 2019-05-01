@@ -128,11 +128,13 @@ class KITTIDataset(Dataset):
 		# print (curImgDir, frame1, frame2)
 		# print(os.path.join(curImgDir, 'left_image', str(frame1).zfill(5) + '.png'))
 		# print(os.path.join(curImgDir, 'left_image', str(frame2).zfill(5) + '.png'))
-		img1 = smc.imread(os.path.join(curImgDir, 'left_image'+str(frame1).zfill(5) + '.png'), mode = 'I')
-		img2 = smc.imread(os.path.join(curImgDir, 'left_image'+str(frame2).zfill(5) + '.png'), mode = 'I')
-		event1 = np.load(os.path.join(curImgDir, 'left_event'+str(frame1).zfill(5) + '.npy'))
+		img1 = smc.imread(os.path.join(curImgDir, 'left_image'+str(frame1).zfill(5) + '.png'), mode='I')
+		img2 = smc.imread(os.path.join(curImgDir, 'left_image'+str(frame2).zfill(5) + '.png'), mode='I')
 		
-		print (event1.shape)
+		event1 = np.load(os.path.join(curImgDir, 'left_event'+str(frame1).zfill(5) + '.npy'))
+		event1 = torch.from_numpy(event1)
+		event1 = event1.permute(2,0,1)	
+		# print (event1.shape)
 		img1 = np.dstack([img1, img1, img1])
 		img2 = np.dstack([img2, img2, img2])
 		
@@ -208,5 +210,6 @@ class KITTIDataset(Dataset):
 		# Torch expects NCWH
 		img = torch.from_numpy(img)
 		img = img.permute(2,0,1)
+		img = img.type(torch.FloatTensor)
 
 		return img

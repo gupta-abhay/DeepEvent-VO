@@ -20,7 +20,6 @@ class Trainer():
 	def __init__(self, args, epoch, model, train_set, val_set, loss_fn, optimizer, scheduler = None, \
 		gradClip = None):
 
-
 		# Commandline arguments
 		self.args = args
 
@@ -73,9 +72,6 @@ class Trainer():
 		if self.curEpoch >= self.maxEpochs:
 			print('Max epochs elapsed! Returning ...')
 			return
-
-		# Increment iters
-		self.iters += 1
 
 		# Variables to store stats
 		rotLosses = []
@@ -134,13 +130,12 @@ class Trainer():
 				self.loss_rot += curloss_rot
 				self.loss_trans += curloss_trans
 
-				#if np.random.normal() < -0.9:
-				#	tqdm.write('rot: ' + str(rot_pred.data) + ' ' + str(rot_gt.data), file = sys.stdout)
-				#	tqdm.write('trans: ' + str(trans_pred.data) + ' ' + str(trans_gt.data), file = sys.stdout)
+				if np.random.normal() < -0.9:
+					tqdm.write('rot: ' + str(rot_pred.data) + ' ' + str(rot_gt.data), file = sys.stdout)
+					tqdm.write('trans: ' + str(trans_pred.data) + ' ' + str(trans_gt.data), file = sys.stdout)
 
 				self.loss += sum([self.args.scf * self.loss_fn(rot_pred, rot_gt), \
 					self.loss_fn(trans_pred, trans_gt)])
-				# self.loss = self.loss_fn(rot_pred, rot_gt)
 
 				curloss_rot = curloss_rot.detach().cpu().numpy()
 				curloss_trans = curloss_trans.detach().cpu().numpy()
@@ -158,6 +153,7 @@ class Trainer():
 					endOfSeq = True
 
 			elapsedBatches += 1
+			self.iters += 1
 			
 			# if endOfSeq is True:
 			if elapsedBatches >= self.args.trainBatch or endOfSeq is True:
