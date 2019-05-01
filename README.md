@@ -1,6 +1,6 @@
 # DeepFusion-VO: Fusing Intensity and Event Frames for End-to-End Deep Visual Odometry
 
-This is the project which @epiception, @SuhitK and I worked on for the Robot Localization and Mapping (16-833) course project at CMU in Spring 2019. The motivation of the project is to see how [DeepVO](http://senwang.gitlab.io/DeepVO/) can be enhanced using event-frames. To read more about event cameras and event SLAM, see this [link](http://rpg.ifi.uzh.ch/research_dvs.html).
+This is the project which [@epiception](https://github.com/epiception), [@SuhitK](https:://github.com/SuhitK) and I worked on for the Robot Localization and Mapping (16-833) course project at CMU in Spring 2019. The motivation of the project is to see how [DeepVO](http://senwang.gitlab.io/DeepVO/) can be enhanced using event-frames. To read more about event cameras and event SLAM, see this [link](http://rpg.ifi.uzh.ch/research_dvs.html).
 
 ## Installation Instructions
 
